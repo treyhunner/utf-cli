@@ -24,15 +24,21 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+    "textual",
+    "pyperclip",
+]
 
 [project.urls]
 Documentation = "https://github.com/treyhunner/utf#readme"
 Issues = "https://github.com/treyhunner/utf/issues"
 Source = "https://github.com/treyhunner/utf"
 
+[project.scripts]
+utf = "utf:main"
+
 [tool.hatch.version]
-path = "utf/__init__.py"
+path = "utf.py"
 
 [tool.hatch.envs.default]
 dependencies = [
@@ -62,7 +68,7 @@ omit = []
 
 [tool.coverage.paths]
 utf = ["utf"]
-tests = ["tests", "*/utf/tests"]
+tests = ["tests"]
 
 [tool.coverage.report]
 exclude_lines = [

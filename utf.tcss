@@ -1,0 +1,24 @@
+Screen {
+    layout: vertical;
+}
+
+Input {
+    margin: 1;
+}
+
+SearchResults {
+    layout: grid;
+    grid-size: 4;
+    grid-gutter: 1;
+    margin: 1;
+}
+
+Result {
+    content-align: center middle;
+    padding: 1;
+    border: solid green;
+}
+
+Result:focus {
+    border: heavy $secondary;
+}
