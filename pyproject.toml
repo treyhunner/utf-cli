@@ -14,7 +14,7 @@ authors = [
   { name = "Trey Hunner" },
 ]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 1 - Planning",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
@@ -35,10 +35,10 @@ Issues = "https://github.com/treyhunner/utf/issues"
 Source = "https://github.com/treyhunner/utf"
 
 [project.scripts]
-utf = "utf:main"
+utf = "utf.__main__:main"
 
 [tool.hatch.version]
-path = "utf.py"
+path = "utf/__init__.py"
 
 [tool.hatch.envs.default]
 dependencies = [

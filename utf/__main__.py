@@ -1,3 +1,4 @@
+import importlib.resources
 import unicodedata
 import sqlite3
 
@@ -8,10 +9,8 @@ from textual.reactive import reactive
 from textual.widgets import Button, Footer, Header, Input, Static
 
 
-__version__ = "0.0.1"
-
-
-db = sqlite3.connect("utf8.db").cursor()
+db_path = importlib.resources.path("utf", "utf8.db")
+db = sqlite3.connect(db_path).cursor()
 
 
 def find_character(name):
@@ -21,6 +20,7 @@ def find_character(name):
         WHERE name LIKE ?
         LIMIT 100;
     """, [f"%{name}%"])
+    # TODO sort by closeness
     return [
         (name, chr(ordinal))
         for name, ordinal in db.fetchall()
@@ -40,7 +40,9 @@ class Result(Static):
 
     def on_key(self, event):
         if event.key == "enter":
-            pyperclip.copy(str(self.renderable))
+            character = str(self.renderable)
+            pyperclip.copy(character)
+            self.notify(f"Copied {character}")
 
 
 class SearchResults(Static):
