@@ -8,20 +8,24 @@ from textual.containers import Container, Horizontal, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Button, Footer, Header, Input, Static
 
+from .generate_db import make_database, db_path
+
 
 __version__ = "0.0.1"
-db_path = importlib.resources.path("utf", "utf8.db")
+
+if not db_path.exists():
+    make_database()
 db = sqlite3.connect(db_path).cursor()
 
 
 def find_character(name):
     db.execute("""
         SELECT name, ordinal
-        FROM chars
+        FROM characters
         WHERE name LIKE ?
+        ORDER BY -PRIORITY
         LIMIT 100;
     """, [f"%{name}%"])
-    # TODO sort by closeness
     return [
         (name, chr(ordinal))
         for name, ordinal in db.fetchall()
