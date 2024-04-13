@@ -2,6 +2,7 @@ import importlib.resources
 import unicodedata
 import sqlite3
 
+from darkdetect import isDark as is_dark, listener as dark_toggle_listener
 import pyperclip
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, VerticalScroll
@@ -111,6 +112,7 @@ class UnicodeApp(App):
 
     def compose(self) -> ComposeResult:
         """Called to add widgets to the app."""
+        self.dark = is_dark()
         yield Footer()
         yield Input(placeholder="Search for a character")
         yield SmartScroll(

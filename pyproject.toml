@@ -28,6 +28,7 @@ dependencies = [
     "textual",
     "pyperclip",
     "platformdirs",
+    "darkdetect",
 ]
 
 [project.urls]
