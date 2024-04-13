@@ -57,7 +57,8 @@ def make_database():
         """
         CREATE TABLE copied_characters (
             name STRING PRIMARY KEY,
-            copies INTEGER UNIQUE,
+            ordinal INTEGER UNIQUE,
+            copies INTEGER,
             last_copied DATETIME
         );
         """
