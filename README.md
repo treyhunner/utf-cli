@@ -10,7 +10,7 @@ Like a mashup of https://unicode.party/ and https://utf8.xyz/ but it's completel
 ## Installation
 
 ```console
-pip install https://github.com/treyhunner/utf/archive/refs/heads/main.zip
+pipx install https://github.com/treyhunner/utf/archive/refs/heads/main.zip
 ```
 
 ## License
