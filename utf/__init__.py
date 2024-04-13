@@ -12,7 +12,7 @@ from textual.widgets import Button, Footer, Header, Input, Static
 from .generate_db import make_database, db_path
 
 
-__version__ = "0.0.1"
+__version__ = "0.1.0.a1"
 
 if not db_path.exists():
     make_database()
