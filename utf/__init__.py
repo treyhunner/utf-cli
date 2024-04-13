@@ -26,10 +26,12 @@ def find_character(name):
         ORDER BY -PRIORITY
         LIMIT 100;
     """, [f"%{name}%"])
-    return [
+    copied_before = set(get_character_cache())
+    results = [
         (name, chr(ordinal))
         for name, ordinal in cursor.fetchall()
     ]
+    return sorted(results, key=lambda r: r not in copied_before)
 
 
 def increment_copy_count(name, ordinal):
