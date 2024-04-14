@@ -82,12 +82,18 @@ class Result(Static):
     def can_focus(self):
         return True
 
+    def copy(self):
+        character = str(self.renderable)
+        pyperclip.copy(character)
+        self.notify(f"Copied {character}")
+        increment_copy_count(self.name, character)
+
     def on_key(self, event):
         if event.key == "enter":
-            character = str(self.renderable)
-            pyperclip.copy(character)
-            self.notify(f"Copied {character}")
-            increment_copy_count(self.name, ord(character))
+            self.copy()
+
+    def on_click(self, event):
+        self.copy()
 
 
 class SearchResults(Static):
