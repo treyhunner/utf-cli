@@ -21,45 +21,46 @@ db = sqlite3.connect(db_path)
 
 def find_character(name):
     cursor = db.execute("""
-        SELECT name, ordinal
-        FROM characters
+        SELECT name, glyph
+        FROM symbols
         WHERE name LIKE ?
         ORDER BY -PRIORITY
         LIMIT 100;
     """, [f"%{name}%"])
     copied_before = set(get_character_cache())
     results = [
-        (name, chr(ordinal))
-        for name, ordinal in cursor.fetchall()
+        (name, glpyh)
+        for name, glpyh in cursor.fetchall()
     ]
     return sorted(results, key=lambda r: r not in copied_before)
 
 
-def increment_copy_count(name, ordinal):
+def increment_copy_count(name, glyph):
     db.execute("""
-        INSERT INTO copied_characters (name, copies, last_copied, ordinal)
+        INSERT INTO copied (glyph, copies, last_copied)
         VALUES (
             ?,
             1,
-            datetime('now'),
-            ?
+            datetime('now')
         )
-        ON CONFLICT(name) DO UPDATE SET
+        ON CONFLICT(glyph) DO UPDATE SET
             copies = copies + 1,
             last_copied = datetime('now')
-    """, (name, ordinal))
+    """, (glyph,))
     db.commit()
 
 
 def get_character_cache():
     cursor = db.execute("""
-        SELECT name, ordinal
-        FROM copied_characters
+        SELECT symbols.name, copied.glyph
+        FROM copied
+        INNER JOIN symbols
+        ON symbols.glyph = copied.glyph
         ORDER BY -copies
     """)
     return [
-        (name, chr(ordinal))
-        for name, ordinal in cursor.fetchall()
+        (name, glyph)
+        for name, glyph in cursor.fetchall()
     ]
 
 
