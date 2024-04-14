@@ -75,9 +75,10 @@ class Result(Static):
     __slots__ = ("name", "character")
 
     def __init__(self, name, character):
+        name = name.replace("-", " ").title()
         self.name = name
         self.character = character
-        super().__init__(character)
+        super().__init__(f"[bold]{name}[/bold]\n\n{character}")
 
     @property
     def can_focus(self):

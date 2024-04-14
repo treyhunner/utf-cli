@@ -17,6 +17,7 @@ Result {
     content-align: center middle;
     padding: 1;
     border: solid green;
+    text-align: center;
 }
 
 Result:hover {
