@@ -105,7 +105,8 @@ class UnicodeApp(App):
     CSS_PATH = "utf.tcss"
 
     BINDINGS = [
-        ("d", "toggle_dark", "Toggle dark mode"),
+        ("ctrl+t", "toggle_dark", "Toggle dark mode"),
+        ("ctrl+l", "clear_search", "Clear search"),
     ]
 
     results = reactive(list)
@@ -119,9 +120,12 @@ class UnicodeApp(App):
             SearchResults(id="results").data_bind(results=UnicodeApp.results)
         )
 
-    def action_toggle_dark(self) -> None:
+    def action_toggle_dark(self):
         """An action to toggle dark mode."""
         self.dark = not self.dark
+
+    def action_clear_search(self):
+        self.query_one(Input).value = ""
 
     def clear_results(self):
         self.results = get_character_cache()
