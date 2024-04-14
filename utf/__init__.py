@@ -19,14 +19,15 @@ if not db_path.exists():
 db = sqlite3.connect(db_path)
 
 
-def find_character(name):
+def find_character(query):
     cursor = db.execute("""
-        SELECT name, glyph
-        FROM symbols
-        WHERE name LIKE ?
-        ORDER BY -PRIORITY
-        LIMIT 100;
-    """, [f"%{name}%"])
+        SELECT DISTINCT symbols.name, symbols.glyph
+        FROM keywords
+        INNER JOIN symbols ON keywords.glyph = symbols.glyph
+        WHERE keyword LIKE ?
+        ORDER BY -symbols.priority
+        LIMIT 100
+    """, [f"%{query}%"])
     copied_before = set(get_character_cache())
     results = [
         (name, glpyh)
@@ -75,7 +76,7 @@ class Result(Static):
     __slots__ = ("name", "character")
 
     def __init__(self, name, character):
-        name = name.replace("-", " ").title()
+        name = name.title()
         self.name = name
         self.character = character
         super().__init__(f"[bold]{name}[/bold]\n\n{character}")
@@ -85,10 +86,9 @@ class Result(Static):
         return True
 
     def copy(self):
-        character = str(self.renderable)
-        pyperclip.copy(character)
-        self.notify(f"Copied {character}")
-        increment_copy_count(self.name, character)
+        pyperclip.copy(self.character)
+        self.notify(f"Copied {self.character}  ({self.name})")
+        increment_copy_count(self.name, self.character)
 
     def on_key(self, event):
         if event.key == "enter":
