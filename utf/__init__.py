@@ -19,47 +19,49 @@ if not db_path.exists():
 db = sqlite3.connect(db_path)
 
 
-def find_character(name):
+def find_character(query):
     cursor = db.execute("""
-        SELECT name, ordinal
-        FROM characters
-        WHERE name LIKE ?
-        ORDER BY -PRIORITY
-        LIMIT 100;
-    """, [f"%{name}%"])
+        SELECT DISTINCT symbols.name, symbols.glyph
+        FROM keywords
+        INNER JOIN symbols ON keywords.glyph = symbols.glyph
+        WHERE keyword LIKE ?
+        ORDER BY -symbols.priority
+        LIMIT 100
+    """, [f"%{query}%"])
     copied_before = set(get_character_cache())
     results = [
-        (name, chr(ordinal))
-        for name, ordinal in cursor.fetchall()
+        (name, glpyh)
+        for name, glpyh in cursor.fetchall()
     ]
     return sorted(results, key=lambda r: r not in copied_before)
 
 
-def increment_copy_count(name, ordinal):
+def increment_copy_count(name, glyph):
     db.execute("""
-        INSERT INTO copied_characters (name, copies, last_copied, ordinal)
+        INSERT INTO copied (glyph, copies, last_copied)
         VALUES (
             ?,
             1,
-            datetime('now'),
-            ?
+            datetime('now')
         )
-        ON CONFLICT(name) DO UPDATE SET
+        ON CONFLICT(glyph) DO UPDATE SET
             copies = copies + 1,
             last_copied = datetime('now')
-    """, (name, ordinal))
+    """, (glyph,))
     db.commit()
 
 
 def get_character_cache():
     cursor = db.execute("""
-        SELECT name, ordinal
-        FROM copied_characters
+        SELECT symbols.name, copied.glyph
+        FROM copied
+        INNER JOIN symbols
+        ON symbols.glyph = copied.glyph
         ORDER BY -copies
     """)
     return [
-        (name, chr(ordinal))
-        for name, ordinal in cursor.fetchall()
+        (name, glyph)
+        for name, glyph in cursor.fetchall()
     ]
 
 
@@ -74,20 +76,26 @@ class Result(Static):
     __slots__ = ("name", "character")
 
     def __init__(self, name, character):
+        name = name.title()
         self.name = name
         self.character = character
-        super().__init__(character)
+        super().__init__(f"[bold]{name}[/bold]\n\n{character}")
 
     @property
     def can_focus(self):
         return True
 
+    def copy(self):
+        pyperclip.copy(self.character)
+        self.notify(f"Copied {self.character}  ({self.name})")
+        increment_copy_count(self.name, self.character)
+
     def on_key(self, event):
         if event.key == "enter":
-            character = str(self.renderable)
-            pyperclip.copy(character)
-            self.notify(f"Copied {character}")
-            increment_copy_count(self.name, ord(character))
+            self.copy()
+
+    def on_click(self, event):
+        self.copy()
 
 
 class SearchResults(Static):
@@ -105,7 +113,8 @@ class UnicodeApp(App):
     CSS_PATH = "utf.tcss"
 
     BINDINGS = [
-        ("d", "toggle_dark", "Toggle dark mode"),
+        ("ctrl+t", "toggle_dark", "Toggle dark mode"),
+        ("ctrl+l", "clear_search", "Clear search"),
     ]
 
     results = reactive(list)
@@ -119,9 +128,12 @@ class UnicodeApp(App):
             SearchResults(id="results").data_bind(results=UnicodeApp.results)
         )
 
-    def action_toggle_dark(self) -> None:
+    def action_toggle_dark(self):
         """An action to toggle dark mode."""
         self.dark = not self.dark
+
+    def action_clear_search(self):
+        self.query_one(Input).value = ""
 
     def clear_results(self):
         self.results = get_character_cache()
