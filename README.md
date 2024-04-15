@@ -5,7 +5,7 @@
 
 Like a mashup of https://unicode.party/ and https://utf8.xyz/ but it's completely local in your terminal!
 
-![typing "sparkles" and copying sparkles character](https://raw.githubusercontent.com/treyhunner/utf/main/demo.gif)
+![typing "sparkles" and copying sparkles character](https://raw.githubusercontent.com/treyhunner/utf/main/demo.webm.mp4)
 
 ## Installation
 
