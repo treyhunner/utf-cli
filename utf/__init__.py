@@ -67,9 +67,8 @@ def get_character_cache():
 
 
 class SmartScroll(VerticalScroll, can_focus=False):
-    def watch_show_vertical_scrollbar(self) -> None:
+    def watch_show_vertical_scrollbar(self):
         self.can_focus = self.show_vertical_scrollbar
-
 
 
 class Result(Static):
