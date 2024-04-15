@@ -58,7 +58,7 @@ def get_character_cache():
         FROM copied
         INNER JOIN symbols
         ON symbols.glyph = copied.glyph
-        ORDER BY -copies
+        ORDER BY -copies, -last_copied
     """)
     return [
         (name, glyph)

@@ -102,14 +102,15 @@ def make_database():
         for character in characters.values()
         if not character.is_control
     }
-    populate_chars_table(db, characters.values())
+    common = common_characters()
+    populate_chars_table(db, characters.values(), common)
     populate_keywords_table(db, keywords)
+    populate_copied_table(db)
     db.commit()
     db.close()
 
 
-def populate_chars_table(db, characters):
-    common = common_characters()
+def populate_chars_table(db, characters, common):
     for char in characters:
         if char.is_control:
             continue
@@ -141,6 +142,47 @@ def populate_keywords_table(db, keywords):
             )
             """,
             (keyword, glyph)
+        )
+
+
+def populate_copied_table(db):
+    fake_copies = [
+        "\N{face with tears of joy}",
+        "\N{bullet}",
+        "\N{sparkles}",
+        "\N{superscript two}",
+        "\N{thumbs up sign}",
+        "\N{em dash}",
+        "\N{purple heart}",
+        "\N{horizontal ellipsis}",
+        "\N{smiling face with smiling eyes}",
+        "\N{vulgar fraction one half}",
+        "\N{party popper}",
+        "\N{zero width space}",
+        "\N{grinning face}",
+        "\N{interrobang}",
+        "\N{unicorn face}",
+        "\N{rightwards arrow}",
+        "\N{mushroom}",
+        "\N{place of interest sign}",
+        "\N{sunflower}",
+        "\N{not equal to}",
+        "\N{shocked face with exploding head}",
+        "\N{inverted question mark}",
+        "\N{person raising both hands in celebration}",
+        "\N{degree sign}",
+        "\N{rainbow}",
+    ]
+    for n, glyph in enumerate(fake_copies, start=1):
+        db.execute(
+            """
+            INSERT INTO copied (
+                glyph, copies, last_copied
+            ) VALUES (
+                ?, ?, datetime('now', '-{n} hour')
+            )
+            """,
+            (glyph, 0)
         )
 
 
