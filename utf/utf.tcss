@@ -8,14 +8,32 @@ Input {
 
 SearchResults {
     layout: grid;
-    grid-size: 4;
+    grid-size: 1;
+    grid-rows: 8;
     grid-gutter: 1;
     margin: 1;
+}
+
+SearchResults.tiny {
+    grid-size: 2;
+}
+
+SearchResults.small {
+    grid-size: 3;
+}
+
+SearchResults.medium {
+    grid-size: 4;
+}
+
+SearchResults.large {
+    grid-size: 5;
 }
 
 Result {
     content-align: center middle;
     padding: 1;
+    height: 8;
     border: solid green;
     text-align: center;
 }

@@ -128,15 +128,29 @@ class UnicodeApp(App):
             SearchResults(id="results").data_bind(results=UnicodeApp.results)
         )
 
-    def action_toggle_dark(self):
-        """An action to toggle dark mode."""
-        self.dark = not self.dark
-
     def action_clear_search(self):
+        self.query_one(Input).focus()
         self.query_one(Input).value = ""
 
     def clear_results(self):
         self.results = get_character_cache()
+
+    def on_resize(self, event):
+        if event.size.width > 200:
+            self.query_one(SearchResults).set_classes("large")
+            self.grid_size = 5
+        elif event.size.width > 150:
+            self.query_one(SearchResults).set_classes("medium")
+            self.grid_size = 4
+        elif event.size.width > 100:
+            self.query_one(SearchResults).set_classes("small")
+            self.grid_size = 3
+        elif event.size.width > 70:
+            self.query_one(SearchResults).set_classes("tiny")
+            self.grid_size = 2
+        else:
+            self.query_one(SearchResults).set_classes("")
+            self.grid_size = 1
 
     def on_load(self):
         self.clear_results()
