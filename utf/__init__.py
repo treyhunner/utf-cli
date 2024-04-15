@@ -5,6 +5,7 @@ import sqlite3
 from darkdetect import isDark as is_dark, listener as dark_toggle_listener
 import pyperclip
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.containers import Container, Horizontal, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Button, Footer, Header, Input, Static
@@ -102,7 +103,7 @@ class SearchResults(Static):
 
     results = reactive(list, recompose=True)
 
-    def compose(self) -> ComposeResult:
+    def compose(self):
         for name, character in self.results:
             yield Result(name, character)
 
@@ -115,11 +116,15 @@ class UnicodeApp(App):
     BINDINGS = [
         ("ctrl+t", "toggle_dark", "Toggle dark mode"),
         ("ctrl+l", "clear_search", "Clear search"),
+        Binding("up", "move_up", "Move up", priority=True, show=False),
+        Binding("down", "move_down", "Move down", priority=True, show=False),
+        Binding("left", "move_left", "Move left", show=False),
+        Binding("right", "move_right", "Move right", show=False),
     ]
 
     results = reactive(list)
 
-    def compose(self) -> ComposeResult:
+    def compose(self):
         """Called to add widgets to the app."""
         self.dark = is_dark()
         yield Footer()
@@ -134,6 +139,41 @@ class UnicodeApp(App):
 
     def clear_results(self):
         self.results = get_character_cache()
+
+    def action_move_up(self):
+        if not isinstance(self.focused, Result):
+            return
+        queries = self.query(Result)
+        index = list(queries).index(self.focused)
+        index -= self.grid_size
+        if index >= 0:
+            self.query(Result)[index].focus()
+        else:
+            self.query_one(Input).focus()
+
+    def action_move_down(self):
+        if not isinstance(self.focused, Result):
+            self.query(Result)[0].focus()
+            return
+        queries = self.query(Result)
+        index = list(queries).index(self.focused)
+        index += self.grid_size
+        if index < len(queries):
+            self.query(Result)[index].focus()
+
+    def action_move_left(self):
+        queries = self.query(Result)
+        index = list(queries).index(self.focused)
+        index -= 1
+        if index >= 0 and (index+1) % self.grid_size > 0:
+            self.query(Result)[index].focus()
+
+    def action_move_right(self):
+        queries = self.query(Result)
+        index = list(queries).index(self.focused)
+        index += 1
+        if index < len(queries) and index % self.grid_size > 0:
+            self.query(Result)[index].focus()
 
     def on_resize(self, event):
         if event.size.width > 200:
