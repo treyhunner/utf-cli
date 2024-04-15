@@ -5,6 +5,7 @@ import sqlite3
 from darkdetect import isDark as is_dark, listener as dark_toggle_listener
 import pyperclip
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.containers import Container, Horizontal, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Button, Footer, Header, Input, Static
@@ -57,7 +58,7 @@ def get_character_cache():
         FROM copied
         INNER JOIN symbols
         ON symbols.glyph = copied.glyph
-        ORDER BY -copies
+        ORDER BY -copies, -last_copied
     """)
     return [
         (name, glyph)
@@ -66,9 +67,8 @@ def get_character_cache():
 
 
 class SmartScroll(VerticalScroll, can_focus=False):
-    def watch_show_vertical_scrollbar(self) -> None:
+    def watch_show_vertical_scrollbar(self):
         self.can_focus = self.show_vertical_scrollbar
-
 
 
 class Result(Static):
@@ -102,7 +102,7 @@ class SearchResults(Static):
 
     results = reactive(list, recompose=True)
 
-    def compose(self) -> ComposeResult:
+    def compose(self):
         for name, character in self.results:
             yield Result(name, character)
 
@@ -115,11 +115,15 @@ class UnicodeApp(App):
     BINDINGS = [
         ("ctrl+t", "toggle_dark", "Toggle dark mode"),
         ("ctrl+l", "clear_search", "Clear search"),
+        Binding("up", "move_up", "Move up", priority=True, show=False),
+        Binding("down", "move_down", "Move down", priority=True, show=False),
+        Binding("left", "move_left", "Move left", show=False),
+        Binding("right", "move_right", "Move right", show=False),
     ]
 
     results = reactive(list)
 
-    def compose(self) -> ComposeResult:
+    def compose(self):
         """Called to add widgets to the app."""
         self.dark = is_dark()
         yield Footer()
@@ -128,15 +132,64 @@ class UnicodeApp(App):
             SearchResults(id="results").data_bind(results=UnicodeApp.results)
         )
 
-    def action_toggle_dark(self):
-        """An action to toggle dark mode."""
-        self.dark = not self.dark
-
     def action_clear_search(self):
+        self.query_one(Input).focus()
         self.query_one(Input).value = ""
 
     def clear_results(self):
         self.results = get_character_cache()
+
+    def action_move_up(self):
+        if not isinstance(self.focused, Result):
+            return
+        queries = self.query(Result)
+        index = list(queries).index(self.focused)
+        index -= self.grid_size
+        if index >= 0:
+            self.query(Result)[index].focus()
+        else:
+            self.query_one(Input).focus()
+
+    def action_move_down(self):
+        if not isinstance(self.focused, Result):
+            self.query(Result)[0].focus()
+            return
+        queries = self.query(Result)
+        index = list(queries).index(self.focused)
+        index += self.grid_size
+        if index < len(queries):
+            self.query(Result)[index].focus()
+
+    def action_move_left(self):
+        queries = self.query(Result)
+        index = list(queries).index(self.focused)
+        index -= 1
+        if index >= 0 and (index+1) % self.grid_size > 0:
+            self.query(Result)[index].focus()
+
+    def action_move_right(self):
+        queries = self.query(Result)
+        index = list(queries).index(self.focused)
+        index += 1
+        if index < len(queries) and index % self.grid_size > 0:
+            self.query(Result)[index].focus()
+
+    def on_resize(self, event):
+        if event.size.width > 200:
+            self.query_one(SearchResults).set_classes("large")
+            self.grid_size = 5
+        elif event.size.width > 150:
+            self.query_one(SearchResults).set_classes("medium")
+            self.grid_size = 4
+        elif event.size.width > 100:
+            self.query_one(SearchResults).set_classes("small")
+            self.grid_size = 3
+        elif event.size.width > 70:
+            self.query_one(SearchResults).set_classes("tiny")
+            self.grid_size = 2
+        else:
+            self.query_one(SearchResults).set_classes("")
+            self.grid_size = 1
 
     def on_load(self):
         self.clear_results()
