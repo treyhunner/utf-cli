@@ -1,7 +1,7 @@
 # utf
 
-[![PyPI - Version](https://img.shields.io/pypi/v/utf.svg)](https://pypi.org/project/utf)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/utf.svg)](https://pypi.org/project/utf)
+[![PyPI - Version](https://img.shields.io/pypi/v/utf-cli.svg)](https://pypi.org/project/utf-cli)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/utf-cli.svg)](https://pypi.org/project/utf-cli)
 
 Like a mashup of https://unicode.party/ and https://utf8.xyz/ but it's completely local in your terminal!
 
@@ -10,9 +10,9 @@ Like a mashup of https://unicode.party/ and https://utf8.xyz/ but it's completel
 ## Installation
 
 ```console
-pipx install https://github.com/treyhunner/utf/archive/refs/heads/main.zip
+pipx install utf-cli
 ```
 
 ## License
 
-`utf` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+This package is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.

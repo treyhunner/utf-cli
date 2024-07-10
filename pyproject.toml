@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "utf"
+name = "utf-cli"
 dynamic = ["version"]
 description = ''
 readme = "README.md"
@@ -32,15 +32,18 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/treyhunner/utf#readme"
-Issues = "https://github.com/treyhunner/utf/issues"
-Source = "https://github.com/treyhunner/utf"
+Documentation = "https://github.com/treyhunner/utf-cli#readme"
+Issues = "https://github.com/treyhunner/utf-cli/issues"
+Source = "https://github.com/treyhunner/utf-cli"
 
 [project.scripts]
 utf = "utf.__main__:main"
 
 [tool.hatch.version]
 path = "utf/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["utf"]
 
 [tool.hatch.envs.default]
 dependencies = [
