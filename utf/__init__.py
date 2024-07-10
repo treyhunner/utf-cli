@@ -1,3 +1,4 @@
+from html.entities import codepoint2name
 import importlib.resources
 import unicodedata
 import sqlite3
@@ -6,8 +7,9 @@ from darkdetect import isDark as is_dark, listener as dark_toggle_listener
 import pyperclip
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, Horizontal, VerticalScroll
+from textual.containers import Container, VerticalScroll
 from textual.reactive import reactive
+from textual.widget import Widget
 from textual.widgets import Button, Footer, Header, Input, Static
 
 from .generate_db import make_database, db_path
@@ -71,7 +73,7 @@ class SmartScroll(VerticalScroll, can_focus=False):
         self.can_focus = self.show_vertical_scrollbar
 
 
-class Result(Static):
+class Result(Widget):
 
     __slots__ = ("name", "character")
 
@@ -79,7 +81,20 @@ class Result(Static):
         name = name.title()
         self.name = name
         self.character = character
-        super().__init__(f"[bold]{name}[/bold]\n\n{character}")
+        super().__init__()
+
+    def compose(self):
+        yield Static(self.name, classes="name")
+        code = ""
+        entity = ""
+        if len(self.character) == 1:
+            c = ord(self.character)
+            code = str(hex(c)[2:].upper())
+            code = code.zfill(8 if len(code) > 4 else 4)
+            entity = f"&{codepoint2name.get(c, f'#{c}')};"
+        yield Static(code)
+        yield Static(self.character)
+        yield Static(entity)
 
     @property
     def can_focus(self):
