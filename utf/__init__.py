@@ -123,23 +123,23 @@ class Result(Widget):
     def action_copy_code(self):
         code = self.character.encode("unicode_escape").decode()
         pyperclip.copy(code)
-        self.notify(f"Copied {code} ({self.name})")
+        self.notify(f"[green]Copied[/green] {code}")
         increment_copy_count(self.name, self.character)
 
     def action_copy_character(self):
         pyperclip.copy(self.character)
-        self.notify(f"Copied {self.character}  ({self.name})")
+        self.notify(f"[green]Copied[/green] {self.character}")
         increment_copy_count(self.name, self.character)
 
     def action_copy_html_entity(self):
         html_entity = self.get_html_entity()
         pyperclip.copy(html_entity)
-        self.notify(f"Copied {html_entity} ({self.name})")
+        self.notify(f"[green]Copied[/green] {html_entity}")
         increment_copy_count(self.name, self.character)
 
     def action_copy_name(self):
         pyperclip.copy(self.name)
-        self.notify(f"Copied {self.name!r}")
+        self.notify(f"[green]Copied[/green] {self.name!r}")
         increment_copy_count(self.name, self.character)
 
     def on_click(self, event):
@@ -173,6 +173,7 @@ class UnicodeApp(App):
 
     CSS_PATH = "utf.tcss"
 
+    NOTIFICATION_TIMEOUT = 10
     BINDINGS = [
         ("ctrl+t", "toggle_dark", "Toggle dark mode"),
         ("ctrl+l", "clear_search", "Clear search"),

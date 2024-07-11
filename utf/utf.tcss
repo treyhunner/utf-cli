@@ -53,3 +53,15 @@ Result:hover {
 Result:focus {
     border: heavy $secondary;
 }
+
+
+Footer {
+  border: none;
+  padding: 0 2 0 2;
+}
+
+Toast {
+    padding: 2;
+    margin-bottom: 1;
+    width: 40;
+}
