@@ -52,7 +52,7 @@ def get_character_data():
 
 def get_keywords_data():
     # File from https://github.com/muan/emojilib/blob/main/dist/emoji-en-US.json
-    path = importlib.resources.path("utf", "emoji-en-US.json")
+    path = importlib.resources.files("utf") / "emoji-en-US.json"
     keyword_data = json.loads(path.read_text())
     return [
         (keyword.replace("_", " "), glyph)
