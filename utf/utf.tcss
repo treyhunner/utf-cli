@@ -2,7 +2,7 @@ Screen {
     layout: vertical;
 }
 
-Input {
+SearchBox {
     margin: 1;
 }
 
