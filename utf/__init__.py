@@ -24,14 +24,19 @@ db = sqlite3.connect(db_path)
 
 
 def find_character(query):
-    cursor = db.execute("""
+    where = "keyword LIKE ?"
+    variables = [f"%{query}%"]
+    if len(query) == 1 or any(ord(c) > 127 for c in query):
+        where += " OR symbols.glyph LIKE ?"
+        variables += variables
+    cursor = db.execute(f"""
         SELECT DISTINCT symbols.name, symbols.glyph
         FROM keywords
         INNER JOIN symbols ON keywords.glyph = symbols.glyph
-        WHERE keyword LIKE ?
+        WHERE {where}
         ORDER BY -symbols.priority
         LIMIT 100
-    """, [f"%{query}%"])
+    """, variables)
     copied_before = set(get_character_cache())
     results = [
         (name, glpyh)
