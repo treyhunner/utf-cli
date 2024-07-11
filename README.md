@@ -1,4 +1,4 @@
-# utf
+# utf-cli
 
 [![PyPI - Version](https://img.shields.io/pypi/v/utf-cli.svg)](https://pypi.org/project/utf-cli)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/utf-cli.svg)](https://pypi.org/project/utf-cli)
