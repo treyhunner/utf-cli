@@ -31,11 +31,19 @@ SearchResults.large {
 }
 
 Result {
-    content-align: center middle;
+    layout: grid;
+    grid-size: 3 2;
     padding: 1;
     height: 8;
     border: solid green;
+}
+
+Result Static {
     text-align: center;
+}
+
+Result .name {
+    column-span: 3;
 }
 
 Result:hover {

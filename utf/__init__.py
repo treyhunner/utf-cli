@@ -1,3 +1,4 @@
+from html.entities import codepoint2name
 import importlib.resources
 import unicodedata
 import sqlite3
@@ -6,14 +7,15 @@ from darkdetect import isDark as is_dark, listener as dark_toggle_listener
 import pyperclip
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, Horizontal, VerticalScroll
+from textual.containers import Container, VerticalScroll
 from textual.reactive import reactive
+from textual.widget import Widget
 from textual.widgets import Button, Footer, Header, Input, Static
 
 from .generate_db import make_database, db_path
 
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 if not db_path.exists():
     make_database()
@@ -71,31 +73,71 @@ class SmartScroll(VerticalScroll, can_focus=False):
         self.can_focus = self.show_vertical_scrollbar
 
 
-class Result(Static):
+class Result(Widget):
 
     __slots__ = ("name", "character")
+
+    BINDINGS = [
+        ("c", "copy_code", "Copy code point"),
+        ("enter", "copy_character", "Copy character"),
+        ("h", "copy_html_entity", "Copy HTML entity"),
+        ("n", "copy_name", "Copy name"),
+    ]
 
     def __init__(self, name, character):
         name = name.title()
         self.name = name
         self.character = character
-        super().__init__(f"[bold]{name}[/bold]\n\n{character}")
+        super().__init__()
+
+    def get_html_entity(self):
+        codes = [ord(c) for c in self.character]
+        return "".join(
+            f"&{codepoint2name.get(c, f'#{c}')};"
+            for c in codes
+        )
+
+    def compose(self):
+        yield Static(self.name, classes="name")
+        code = ""
+        entity = ""
+        if len(self.character) == 1:
+            c = ord(self.character)
+            code = f"{c:X}"
+            code = code.zfill(8 if len(code) > 4 else 4)
+            entity = self.get_html_entity()
+        yield Static(code)
+        yield Static(self.character)
+        yield Static(entity)
 
     @property
     def can_focus(self):
         return True
 
-    def copy(self):
+    def action_copy_code(self):
+        code = self.character.encode("unicode_escape").decode()
+        pyperclip.copy(code)
+        self.notify(f"Copied {code} ({self.name})")
+        increment_copy_count(self.name, self.character)
+
+    def action_copy_character(self):
         pyperclip.copy(self.character)
         self.notify(f"Copied {self.character}  ({self.name})")
         increment_copy_count(self.name, self.character)
 
-    def on_key(self, event):
-        if event.key == "enter":
-            self.copy()
+    def action_copy_html_entity(self):
+        html_entity = self.get_html_entity()
+        pyperclip.copy(html_entity)
+        self.notify(f"Copied {html_entity} ({self.name})")
+        increment_copy_count(self.name, self.character)
+
+    def action_copy_name(self):
+        pyperclip.copy(self.name)
+        self.notify(f"Copied {self.name!r}")
+        increment_copy_count(self.name, self.character)
 
     def on_click(self, event):
-        self.copy()
+        self.action_copy_character()
 
 
 class SearchResults(Static):
