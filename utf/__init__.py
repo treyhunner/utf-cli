@@ -140,7 +140,7 @@ class Result(Widget):
     def action_copy_name(self):
         pyperclip.copy(self.name)
         self.notify(f"[green]Copied[/green] {self.name!r}")
-        increment_copy_count(self.name, self.character)
+        increment_copy_count(self.name.lower(), self.character)
 
     def on_click(self, event):
         self.action_copy_character()
