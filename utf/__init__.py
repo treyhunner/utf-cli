@@ -81,6 +81,7 @@ class Result(Widget):
         ("c", "copy_code", "Copy code point"),
         ("enter", "copy_character", "Copy character"),
         ("h", "copy_html_entity", "Copy HTML entity"),
+        ("n", "copy_name", "Copy name"),
     ]
 
     def __init__(self, name, character):
@@ -119,15 +120,20 @@ class Result(Widget):
         self.notify(f"Copied {code} ({self.name})")
         increment_copy_count(self.name, self.character)
 
+    def action_copy_character(self):
+        pyperclip.copy(self.character)
+        self.notify(f"Copied {self.character}  ({self.name})")
+        increment_copy_count(self.name, self.character)
+
     def action_copy_html_entity(self):
         html_entity = self.get_html_entity()
         pyperclip.copy(html_entity)
         self.notify(f"Copied {html_entity} ({self.name})")
         increment_copy_count(self.name, self.character)
 
-    def action_copy_character(self):
-        pyperclip.copy(self.character)
-        self.notify(f"Copied {self.character}  ({self.name})")
+    def action_copy_name(self):
+        pyperclip.copy(self.name)
+        self.notify(f"Copied {self.name!r}")
         increment_copy_count(self.name, self.character)
 
     def on_click(self, event):
