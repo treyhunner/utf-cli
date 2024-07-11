@@ -38,8 +38,8 @@ class Character:
 
 def get_character_data():
     # File from https://www.unicode.org/Public/draft/UCD/ucd/UnicodeData.txt
-    path = importlib.resources.path("utf", "UnicodeData.txt")
-    with open(path) as file:
+    path = importlib.resources.files("utf") / "UnicodeData.txt"
+    with path.open() as file:
         characters = [
             Character.from_csv_row(row)
             for row in csv.reader(file, delimiter=";")
