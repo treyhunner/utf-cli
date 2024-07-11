@@ -8,6 +8,7 @@ import pyperclip
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Container, VerticalScroll
+from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Button, Footer, Header, Input, Static
@@ -15,7 +16,7 @@ from textual.widgets import Button, Footer, Header, Input, Static
 from .generate_db import make_database, db_path
 
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 if not db_path.exists():
     make_database()
@@ -23,14 +24,19 @@ db = sqlite3.connect(db_path)
 
 
 def find_character(query):
-    cursor = db.execute("""
+    where = "keyword LIKE ?"
+    variables = [f"%{query}%"]
+    if len(query) == 1 or any(ord(c) > 127 for c in query):
+        where += " OR symbols.glyph LIKE ?"
+        variables += variables
+    cursor = db.execute(f"""
         SELECT DISTINCT symbols.name, symbols.glyph
         FROM keywords
         INNER JOIN symbols ON keywords.glyph = symbols.glyph
-        WHERE keyword LIKE ?
+        WHERE {where}
         ORDER BY -symbols.priority
         LIMIT 100
-    """, [f"%{query}%"])
+    """, variables)
     copied_before = set(get_character_cache())
     results = [
         (name, glpyh)
@@ -140,6 +146,19 @@ class Result(Widget):
         self.action_copy_character()
 
 
+class SearchBox(Input):
+
+    BINDINGS = [
+        Binding("enter", "first_result", "Select first result", priority=True),
+    ]
+
+    class Done(Message):
+        """Searching done."""
+
+    def action_first_result(self):
+        self.post_message(self.Done())
+
+
 class SearchResults(Static):
 
     results = reactive(list, recompose=True)
@@ -169,14 +188,14 @@ class UnicodeApp(App):
         """Called to add widgets to the app."""
         self.dark = is_dark()
         yield Footer()
-        yield Input(placeholder="Search for a character")
+        yield SearchBox(placeholder="Search for a character")
         yield SmartScroll(
             SearchResults(id="results").data_bind(results=UnicodeApp.results)
         )
 
     def action_clear_search(self):
-        self.query_one(Input).focus()
-        self.query_one(Input).value = ""
+        self.query_one(SearchBox).focus()
+        self.query_one(SearchBox).value = ""
 
     def clear_results(self):
         self.results = get_character_cache()
@@ -190,7 +209,7 @@ class UnicodeApp(App):
         if index >= 0:
             self.query(Result)[index].focus()
         else:
-            self.query_one(Input).focus()
+            self.query_one(SearchBox).focus()
 
     def action_move_down(self):
         if not isinstance(self.focused, Result):
@@ -235,6 +254,11 @@ class UnicodeApp(App):
 
     def on_load(self):
         self.clear_results()
+
+    def on_search_box_done(self, message):
+        if not isinstance(self.focused, Result):
+            self.query(Result)[0].focus()
+            return
 
     def on_input_changed(self, message):
         if message.value:
