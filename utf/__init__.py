@@ -77,11 +77,24 @@ class Result(Widget):
 
     __slots__ = ("name", "character")
 
+    BINDINGS = [
+        ("c", "copy_code", "Copy code point"),
+        ("enter", "copy_character", "Copy character"),
+        ("h", "copy_html_entity", "Copy HTML entity"),
+    ]
+
     def __init__(self, name, character):
         name = name.title()
         self.name = name
         self.character = character
         super().__init__()
+
+    def get_html_entity(self):
+        codes = [ord(c) for c in self.character]
+        return "".join(
+            f"&{codepoint2name.get(c, f'#{c}')};"
+            for c in codes
+        )
 
     def compose(self):
         yield Static(self.name, classes="name")
@@ -89,9 +102,9 @@ class Result(Widget):
         entity = ""
         if len(self.character) == 1:
             c = ord(self.character)
-            code = str(hex(c)[2:].upper())
+            code = f"{c:X}"
             code = code.zfill(8 if len(code) > 4 else 4)
-            entity = f"&{codepoint2name.get(c, f'#{c}')};"
+            entity = self.get_html_entity()
         yield Static(code)
         yield Static(self.character)
         yield Static(entity)
@@ -100,17 +113,25 @@ class Result(Widget):
     def can_focus(self):
         return True
 
-    def copy(self):
+    def action_copy_code(self):
+        code = self.character.encode("unicode_escape").decode()
+        pyperclip.copy(code)
+        self.notify(f"Copied {code} ({self.name})")
+        increment_copy_count(self.name, self.character)
+
+    def action_copy_html_entity(self):
+        html_entity = self.get_html_entity()
+        pyperclip.copy(html_entity)
+        self.notify(f"Copied {html_entity} ({self.name})")
+        increment_copy_count(self.name, self.character)
+
+    def action_copy_character(self):
         pyperclip.copy(self.character)
         self.notify(f"Copied {self.character}  ({self.name})")
         increment_copy_count(self.name, self.character)
 
-    def on_key(self, event):
-        if event.key == "enter":
-            self.copy()
-
     def on_click(self, event):
-        self.copy()
+        self.action_copy_character()
 
 
 class SearchResults(Static):
