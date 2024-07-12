@@ -138,9 +138,16 @@ class Result(Widget):
         increment_copy_count(self.name, self.character)
 
     def action_copy_name(self):
-        pyperclip.copy(self.name)
-        self.notify(f"[green]Copied[/green] {self.name!r}")
-        increment_copy_count(self.name.lower(), self.character)
+        if len(self.character) == 1:
+            name = r"\N{" + self.name.lower() + r"}"
+        else:
+            name = "".join(
+                r"\N{" + unicodedata.name(c) + r"}"
+                for c in self.character
+            )
+        pyperclip.copy(name)
+        self.notify(f'[green]Copied[/green] "{name}"')
+        increment_copy_count(self.name, self.character)
 
     def on_click(self, event):
         self.action_copy_character()

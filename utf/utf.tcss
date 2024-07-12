@@ -56,12 +56,12 @@ Result:focus {
 
 
 Footer {
-  border: none;
-  padding: 0 2 0 2;
+    border: none;
+    padding: 0 2 0 2;
 }
 
 Toast {
     padding: 2;
     margin-bottom: 1;
-    width: 40;
+    width: 65;
 }
