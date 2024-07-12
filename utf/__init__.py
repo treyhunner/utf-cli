@@ -7,11 +7,11 @@ from darkdetect import isDark as is_dark, listener as dark_toggle_listener
 import pyperclip
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, VerticalScroll
+from textual.containers import Horizontal, VerticalScroll
 from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Button, Footer, Header, Input, Static
+from textual.widgets import Button, Footer, Header, Input, Select, Static
 
 from .generate_db import make_database, db_path
 
@@ -21,6 +21,16 @@ __version__ = "0.3.3"
 if not db_path.exists():
     make_database()
 db = sqlite3.connect(db_path)
+
+
+SKIN_TONES = {
+    "light": "\U0001F3FB",
+    "medium_light": "\U0001F3FC",
+    "medium": "\U0001F3FD",
+    "medium_dark": "\U0001F3FE",
+    "dark": "\U0001F3FF",
+}
+SKIN_TONES_SUPPORTED = tuple("☝️⛷️✊✋✌️✌️🎅🎅🎽🏂🏃🏃🏃🏄🏄🏄🏇🏇🏇🏊🏊🏊🏋️🏋️🏌️🏌️👁️👂👂👃👃👄👅👆👆👇👇👈👈👉👉👊👊👋👋👋👌👌👌👍👍👍👎👎👎👏👏👐👐👦👦👦👧👧👧👨👨👨👨👨👨👨👩👩👩👫👬👭👮👮👮👰👰👱👱👲👲👳👳👴👴👴👵👵👵👶👶👶👷👷👸👼👼💁💁💁💂 💂💂💃💃💅💆💇💑💪🕴️🕵️🕵️🕺🖐️🖕🖖🖖🙅🙅🙆🙆🙇🙇🙋🙋🙋🙌🙌🙍🙎🙏🙏🚣🚣🚴🚴🚴🚵🚵🚵🚶🚶🛀🛀🛌🤌🤏🤘🤘🤙🤙🤚🤛🤜🤝🤞🤞🤟🤦🤦🤰🤱🤲🤵🤶🤷🤷🤹🤺🤽🤽🤾🦰🦱🦲🦳🦸🦹🧍🧎🧏🧑🧑🧑🧑🧑🧑🧑🧑🧑🧑🧑🧑🧑🧑🧑🧑🧑🧑🧑🧑🧓🧕🧗🧘🧘🧙🧚🧛🧜🧝🧞🧟")
 
 
 def find_character(query):
@@ -81,7 +91,7 @@ class SmartScroll(VerticalScroll, can_focus=False):
 
 class Result(Widget):
 
-    __slots__ = ("name", "character")
+    __slots__ = ("name", "character", "skin_tone")
 
     BINDINGS = [
         ("c", "copy_code", "Copy code point"),
@@ -90,10 +100,11 @@ class Result(Widget):
         ("n", "copy_name", "Copy name"),
     ]
 
-    def __init__(self, name, character):
+    def __init__(self, name, character, skin_tone=None):
         name = name.title()
         self.name = name
         self.character = character
+        self.skin_tone = skin_tone
         super().__init__()
 
     def get_html_entity(self):
@@ -112,23 +123,30 @@ class Result(Widget):
             code = f"{c:X}"
             code = code.zfill(8 if len(code) > 4 else 4)
             entity = self.get_html_entity()
-        yield Static(code)
+        yield Static(f"[bright_black]{code}[/bright_black]")
         yield Static(self.character)
-        yield Static(entity)
+        yield Static(f"[bright_black]{entity}[/bright_black]")
+
+    @property
+    def final_character(self):
+        character = self.character
+        if self.skin_tone:
+            character += SKIN_TONES[self.skin_tone]
+        return character
 
     @property
     def can_focus(self):
         return True
 
     def action_copy_code(self):
-        code = self.character.encode("unicode_escape").decode()
+        code = self.final_character.encode("unicode_escape").decode()
         pyperclip.copy(code)
         self.notify(f"[green]Copied[/green] {code}")
         increment_copy_count(self.name, self.character)
 
     def action_copy_character(self):
-        pyperclip.copy(self.character)
-        self.notify(f"[green]Copied[/green] {self.character}")
+        pyperclip.copy(self.final_character)
+        self.notify(f"[green]Copied[/green] {self.final_character}")
         increment_copy_count(self.name, self.character)
 
     def action_copy_html_entity(self):
@@ -169,10 +187,14 @@ class SearchBox(Input):
 class SearchResults(Static):
 
     results = reactive(list, recompose=True)
+    skin_tone = reactive(str, recompose=True)
 
     def compose(self):
         for name, character in self.results:
-            yield Result(name, character)
+            if self.skin_tone and character.startswith(SKIN_TONES_SUPPORTED):
+                yield Result(name, character, self.skin_tone)
+            else:
+                yield Result(name, character)
 
 
 class UnicodeApp(App):
@@ -191,14 +213,30 @@ class UnicodeApp(App):
     ]
 
     results = reactive(list)
+    skin_tone = reactive(str)
 
     def compose(self):
         """Called to add widgets to the app."""
         self.dark = is_dark()
+        skin_tone_options = [
+            ("No Skin Tone", ""),
+            ("Dark", "dark"),
+            ("Medium Dark", "medium-dark"),
+            ("Medium", "medium"),
+            ("Medium Light", "medium-light"),
+            ("Light", "light"),
+        ]
         yield Footer()
-        yield SearchBox(placeholder="Search for a character")
+        yield Horizontal(
+            SearchBox(placeholder="Search for a character"),
+            Select(skin_tone_options, allow_blank=False),
+            classes="query",
+        )
         yield SmartScroll(
-            SearchResults(id="results").data_bind(results=UnicodeApp.results)
+            SearchResults(id="results").data_bind(
+                results=UnicodeApp.results,
+                skin_tone=UnicodeApp.skin_tone,
+            )
         )
 
     def action_clear_search(self):
@@ -273,5 +311,9 @@ class UnicodeApp(App):
             self.results = find_character(message.value)
         else:
             self.clear_results()
+
+    def on_select_changed(self, message):
+        self.skin_tone = message.value
+
 
 app = UnicodeApp()
