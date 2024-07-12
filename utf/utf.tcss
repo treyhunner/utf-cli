@@ -2,8 +2,16 @@ Screen {
     layout: vertical;
 }
 
-SearchBox {
-    margin: 1;
+.query {
+    height: auto;
+    SearchBox {
+        margin: 1;
+        max-width: 80%;
+    }
+    Select {
+        margin: 1;
+        min-width: 20;
+    }
 }
 
 SearchResults {
