@@ -2,6 +2,7 @@ from html.entities import codepoint2name
 import importlib.resources
 import unicodedata
 import sqlite3
+import sys
 
 from darkdetect import isDark as is_dark, listener as dark_toggle_listener
 import pyperclip
@@ -16,7 +17,7 @@ from textual.widgets import Button, Footer, Header, Input, Static
 from .generate_db import make_database, db_path
 
 
-__version__ = "0.3.3"
+__version__ = "0.4.0"
 
 if not db_path.exists():
     make_database()
@@ -182,6 +183,7 @@ class UnicodeApp(App):
 
     NOTIFICATION_TIMEOUT = 10
     BINDINGS = [
+        ("ctrl+q", "quit", "Quit"),
         ("ctrl+t", "toggle_dark", "Toggle dark mode"),
         ("ctrl+l", "clear_search", "Clear search"),
         Binding("up", "move_up", "Move up", priority=True, show=False),
@@ -200,6 +202,9 @@ class UnicodeApp(App):
         yield SmartScroll(
             SearchResults(id="results").data_bind(results=UnicodeApp.results)
         )
+
+    def action(self):
+        sys.exit(0)
 
     def action_clear_search(self):
         self.query_one(SearchBox).focus()
